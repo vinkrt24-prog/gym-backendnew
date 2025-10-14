@@ -1,52 +1,79 @@
 const express = require('express');
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-// Register endpoint
+// Import User model with correct lowercase path
+const User = require('../models/user');
+
+// Register route
 router.post('/register', async (req, res) => {
-  const { fullname, email, phone, username, password, membership } = req.body;
-
   try {
-    const existingUser = await User.findOne({
-      $or: [{ username }, { email }]
-    });
+    const { username, email, password } = req.body;
 
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username or Email already exists' });
+    if (!username || !email || !password) {
+      return res.status(400).json({ msg: 'Please enter all fields' });
     }
 
-    const user = new User({ fullname, email, phone, username, password, membership });
-    await user.save();
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ msg: 'User already exists' });
 
-    res.status(201).json({ message: 'User registered successfully' });
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      token,
+      user: {
+        id: savedUser._id,
+        username: savedUser.username,
+        email: savedUser.email,
+      },
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// Login endpoint
+// Login route
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
   try {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: 'Invalid username or password' });
+    const { email, password } = req.body;
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid username or password' });
+    if (!email || !password) {
+      return res.status(400).json({ msg: 'Please enter all fields' });
+    }
 
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
-      expiresIn: '1h',
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: 'User does not exist' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
     });
-
-    res.json({ token, username: user.username });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
