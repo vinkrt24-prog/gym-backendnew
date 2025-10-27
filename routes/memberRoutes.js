@@ -4,16 +4,20 @@ const router = express.Router();
 const {
   getMembers,
   addMember,
-  deleteMember
+  deleteMember,
+  getMemberStats
 } = require('../controllers/memberController');
 
-// GET all members
+// Get all members
 router.get('/', getMembers);
 
-// POST add new member
-router.post('/add', addMember);
+// Add a new member
+router.post('/', addMember);
 
-// DELETE member by ID
+// Delete a member by ID
 router.delete('/:id', deleteMember);
+
+// Get dashboard stats
+router.get('/stats', getMemberStats);
 
 module.exports = router;
