@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-const memberRoutes = require('./routes/memberRoutes');
+const memberRoutes = require('./routes/member.route');  // ✅ corrected
 const trainerRoutes = require('./routes/trainerRoutes');
 
 // Use routes
