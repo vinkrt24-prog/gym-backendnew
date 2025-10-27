@@ -1,33 +1,53 @@
 const AdminNotes = require('../models/AdminNotes');
 
-exports.getNotes = async (req, res) => {
+// GET notes
+const getNotes = async (req, res) => {
   try {
-    const notes = await AdminNotes.find();
-    res.json(notes);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    let notes = await AdminNotes.findOne();
+    if (!notes) {
+      notes = new AdminNotes();
+      await notes.save();
+    }
+    res.json({ content: notes.content });
+  } catch (err) {
+    console.error('❌ Error fetching notes:', err);
+    res.status(500).json({ error: 'Failed to fetch notes' });
   }
 };
 
-exports.addNote = async (req, res) => {
-  const { content } = req.body;
-  const note = new AdminNotes({ content });
-
+// POST or UPDATE notes
+const saveNotes = async (req, res) => {
   try {
-    const savedNote = await note.save();
-    res.status(201).json(savedNote);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    const { content } = req.body;
+    let notes = await AdminNotes.findOne();
+    if (!notes) {
+      notes = new AdminNotes({ content });
+    } else {
+      notes.content = content;
+    }
+    await notes.save();
+    res.json({ message: 'Notes saved successfully!' });
+  } catch (err) {
+    console.error('❌ Error saving notes:', err);
+    res.status(500).json({ error: 'Failed to save notes' });
   }
 };
 
-// Clear all notes (delete all)
-exports.clearNotes = async (req, res) => {
+// DELETE notes
+const clearNotes = async (req, res) => {
   try {
-    await AdminNotes.deleteMany({});
-    res.json({ message: 'All notes cleared' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    let notes = await AdminNotes.findOne();
+    if (notes) {
+      notes.content = '';
+      await notes.save();
+    }
+    res.json({ message: 'Notes cleared successfully!' });
+  } catch (err) {
+    console.error('❌ Error clearing notes:', err);
+    res.status(500).json({ error: 'Failed to clear notes' });
   }
 };
+
+module.exports = { getNotes, saveNotes, clearNotes };
+
 
