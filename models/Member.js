@@ -8,7 +8,6 @@ const memberSchema = new mongoose.Schema({
   gender: { type: String, required: true },
   plan: { type: String, required: true },
   wantTrainer: { type: Boolean, default: false },
-  trainerId: { type: Number, default: null },
   paymentStatus: { type: String, required: true },
   joinDate: { type: String, required: true },
   endDate: { type: String, required: true }
