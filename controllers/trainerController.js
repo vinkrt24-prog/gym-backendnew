@@ -1,31 +1,43 @@
 const Trainer = require('../models/Trainer');
 
-exports.getTrainers = async (req, res) => {
+// GET all trainers
+const getTrainers = async (req, res) => {
   try {
     const trainers = await Trainer.find();
     res.json(trainers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch trainers' });
   }
 };
 
-exports.addTrainer = async (req, res) => {
-  const { name, specialty, email, phone } = req.body;
-  const trainer = new Trainer({ name, specialty, email, phone });
-
+// POST new trainer
+const addTrainer = async (req, res) => {
   try {
-    const savedTrainer = await trainer.save();
-    res.status(201).json(savedTrainer);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    const { first_name, last_name, age, timing, employment_status } = req.body;
+
+    const newTrainer = new Trainer({
+      first_name,
+      last_name,
+      age,
+      timing,
+      employment_status
+    });
+
+    await newTrainer.save();
+    res.status(201).json({ message: 'Trainer added successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add trainer' });
   }
 };
 
-exports.deleteTrainer = async (req, res) => {
+// DELETE trainer
+const deleteTrainer = async (req, res) => {
   try {
     await Trainer.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Trainer deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: 'Trainer deleted successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete trainer' });
   }
 };
+
+module.exports = { getTrainers, addTrainer, deleteTrainer };
