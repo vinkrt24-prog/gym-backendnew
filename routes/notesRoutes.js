@@ -3,12 +3,17 @@ const router = express.Router();
 
 const {
   getNotes,
-  addNote,
+  saveNotes,
   clearNotes
 } = require('../controllers/notesController');
 
+// Get notes
 router.get('/', getNotes);
-router.post('/add', addNote);
-router.delete('/clear', clearNotes);
+
+// Save or update notes
+router.post('/', saveNotes);
+
+// Clear notes
+router.delete('/', clearNotes);
 
 module.exports = router;
