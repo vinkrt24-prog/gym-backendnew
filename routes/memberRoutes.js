@@ -8,16 +8,16 @@ const {
   getMemberStats
 } = require('../controllers/memberController');
 
-// Get all members
+// 🟢 Get all members
 router.get('/', getMembers);
 
-// Add a new member
+// 🟢 Add a new member
 router.post('/', addMember);
 
-// Delete a member by ID
+// 🟢 Delete a member by ID
 router.delete('/:id', deleteMember);
 
-// Get dashboard stats
+// 🟢 Get dashboard stats (must be defined *before* export)
 router.get('/stats', getMemberStats);
 
 module.exports = router;
