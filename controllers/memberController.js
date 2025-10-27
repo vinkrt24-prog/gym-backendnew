@@ -1,34 +1,59 @@
 const Member = require('../models/Member');
 
 // Get all members
-exports.getMembers = async (req, res) => {
+const getMembers = async (req, res) => {
   try {
+    console.log('🔍 GET /members triggered');
     const members = await Member.find();
+    console.log('✅ Members fetched:', members);
     res.json(members);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error('❌ Error fetching members:', err.message);
+    res.status(500).json({ error: 'Failed to fetch members' });
   }
 };
 
 // Add a new member
-exports.addMember = async (req, res) => {
-  const { name, age, email, phone } = req.body;
-  const member = new Member({ name, age, email, phone });
-
+const addMember = async (req, res) => {
   try {
-    const savedMember = await member.save();
-    res.status(201).json(savedMember);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.log('📥 Incoming data:', req.body);
+    const newMember = new Member(req.body);
+    await newMember.save();
+    console.log('✅ Member saved:', newMember);
+    res.json({ message: 'Member added successfully!' });
+  } catch (err) {
+    console.error('❌ Error adding member:', err.message);
+    res.status(500).json({ error: 'Failed to add member' });
   }
 };
 
-// Delete a member by ID
-exports.deleteMember = async (req, res) => {
+// Delete a member
+const deleteMember = async (req, res) => {
   try {
-    await Member.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Member deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const { id } = req.params;
+    await Member.findByIdAndDelete(id);
+    console.log(`🗑 Member with ID ${id} deleted`);
+    res.json({ message: 'Member deleted successfully!' });
+  } catch (err) {
+    console.error('❌ Error deleting member:', err.message);
+    res.status(500).json({ error: 'Failed to delete member' });
   }
 };
+
+// Get dashboard stats
+const getMemberStats = async (req, res) => {
+  try {
+    const totalMembers = await Member.countDocuments();
+    const activePlans = await Member.aggregate([
+      { $group: { _id: '$plan', count: { $sum: 1 } } }
+    ]);
+    console.log('📊 Stats fetched:', { totalMembers, activePlans });
+    res.json({ totalMembers, activePlans });
+  } catch (err) {
+    console.error('❌ Error fetching stats:', err.message);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+};
+
+module.exports = { getMembers, addMember, deleteMember, getMemberStats };
+
